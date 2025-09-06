@@ -237,11 +237,19 @@ class StreamingDataProcessor:
         """Normalize data types for parquet schema compatibility."""
         normalized = tweet.copy()
         
-        # Convert None values to appropriate defaults
+        # Convert and validate integer fields
         int_fields = ['favorite_count', 'retweet_count', 'reply_count', 'quote_count', 'view_count', 'bookmark_count']
         for field in int_fields:
-            if normalized.get(field) is None:
+            value = normalized.get(field)
+            if value is None:
                 normalized[field] = 0
+            else:
+                try:
+                    # Convert string numbers to int
+                    normalized[field] = int(str(value)) if value else 0
+                except (ValueError, TypeError):
+                    logging.warning(f"Could not convert {field} value '{value}' to int, using 0")
+                    normalized[field] = 0
         
         bool_fields = ['favorited', 'bookmarked', 'has_card', 'is_quote_status', 'possibly_sensitive', 'is_translatable']
         for field in bool_fields:

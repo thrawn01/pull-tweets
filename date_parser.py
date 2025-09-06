@@ -30,7 +30,8 @@ class DateParser:
     @staticmethod
     def calculate_cutoff_date(duration: timedelta) -> datetime:
         """Calculate cutoff date for tweet filtering."""
-        return datetime.now() - duration
+        from datetime import timezone
+        return datetime.now(timezone.utc) - duration
     
     @staticmethod
     def parse_tweet_date(tweet_created_at) -> datetime:

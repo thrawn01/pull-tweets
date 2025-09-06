@@ -42,7 +42,12 @@ class TweetPuller:
                 logging.info(f"Found previous checkpoint ({existing_checkpoint.get('count', 0)} tweets). Use --resume to continue or delete {output_file}.checkpoint to start fresh.")
             
             # Initialize components
-            rate_limiter = RateLimiter(**self.config_manager.get_rate_limit_settings())
+            rate_settings = self.config_manager.get_rate_limit_settings()
+            rate_limiter = RateLimiter(
+                base_delay=rate_settings['base_delay_seconds'],
+                max_retries=rate_settings['max_retries'], 
+                backoff_multiplier=rate_settings['backoff_multiplier']
+            )
             
             output_settings = self.config_manager.get_output_settings()
             processing_settings = self.config_manager.get_processing_settings()

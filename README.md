@@ -37,7 +37,7 @@ uv sync
 
 ```bash
 cp config.yaml.template config.yaml
-# Edit config.yaml with your X.com credentials
+# Edit config.yaml with research account X.com credentials
 ```
 
 ### Fetch Tweets
@@ -51,14 +51,8 @@ uv run python pull_tweets.py @username --duration "7 days" -o tweets_7d.parquet
 ```
 
 ## ⚙️ Configuration
-
-Create your configuration file:
-
-```bash
-cp config.yaml.template config.yaml
-```
-
-Edit `config.yaml` with your settings:
+> NOTE: Highly recommend creating a research account for data extraction. Do not
+> use your personal account with this tool.
 
 ```yaml
 # X.com Authentication
@@ -161,47 +155,16 @@ The parquet file contains comprehensive tweet metadata:
 - `in_reply_to`: ID of tweet being replied to
 - `conversation_id`: Thread conversation identifier
 
-## 🔧 Development
-
-### Using UV for Development
-
-```bash
-# Install with development dependencies
-uv sync --group dev
-
-# Run tests
-uv run pytest
-
-# Format code
-uv run black .
-uv run isort .
-
-# Lint code  
-uv run ruff check .
-
-# Type checking
-uv run mypy .
-```
-
 ## 📈 Data Analysis Examples
 
 ### Load and Explore Data
 
 ```python
 import pandas as pd
-import duckdb
 
 # Load with pandas
 df = pd.read_parquet('tweets.parquet')
 print(f"Extracted {len(df)} tweets")
-
-# Or use DuckDB for larger datasets
-conn = duckdb.connect()
-conn.execute("""
-    SELECT user_screen_name, COUNT(*) as tweet_count
-    FROM 'tweets.parquet' 
-    GROUP BY user_screen_name
-""").fetchall()
 ```
 
 ### Analysis Examples
@@ -229,6 +192,120 @@ print("Most retweeted:")
 print(top_tweets)
 ```
 
+### DuckDB CLI Analysis
+
+For larger datasets and advanced analytics, use the DuckDB CLI directly - no Python dependencies needed!
+
+**Basic Tweet Summary:**
+```bash
+duckdb -c "
+SELECT 
+    COUNT(*) as total_tweets,
+    ROUND(AVG(favorite_count)) as avg_likes,
+    ROUND(AVG(retweet_count)) as avg_retweets, 
+    ROUND(AVG(view_count)) as avg_views,
+    MAX(favorite_count) as most_liked
+FROM 'tweets.parquet';"
+```
+
+**Output:**
+```
+┌──────────────┬───────────┬──────────────┬───────────┬────────────┐
+│ total_tweets │ avg_likes │ avg_retweets │ avg_views │ most_liked │
+│    int64     │  double   │    double    │  double   │   int64    │
+├──────────────┼───────────┼──────────────┼───────────┼────────────┤
+│           85 │    1954.0 │        171.0 │  164475.0 │      58684 │
+└──────────────┴───────────┴──────────────┴───────────┴────────────┘
+```
+
+**Most Engaging Tweets:**
+```bash
+duckdb -c "
+SELECT 
+    SUBSTRING(text, 1, 60) || '...' as tweet_preview,
+    favorite_count,
+    view_count,
+    (favorite_count + view_count/100) as engagement_score
+FROM 'tweets.parquet'
+WHERE text NOT LIKE 'RT @%'  -- Exclude retweets
+ORDER BY engagement_score DESC
+LIMIT 5;"
+```
+
+**Output:**
+```
+┌─────────────────────────────────────────────────┬────────────────┬────────────┬──────────────────┐
+│                 tweet_preview                   │ favorite_count │ view_count │ engagement_score │
+├─────────────────────────────────────────────────┼────────────────┼────────────┼──────────────────┤
+│ A+ joke by the way ...                          │          58684 │    3304315 │         91727.15 │
+│ I invented a thought controlled air freshene..  │          22429 │    1748634 │         39915.34 │
+│ I need the apology for saying Peyton Manning... │          15680 │    1056758 │         26247.58 │
+│ Let me just ask - Is the SEC overrated?...      │           8202 │     577566 │         13977.66 │
+└─────────────────────────────────────────────────┴────────────────┴────────────┴──────────────────┘
+```
+
+**Tweet Timeline Analysis:**
+```bash
+duckdb -c "
+SELECT 
+    DATE_TRUNC('day', created_at) as day,
+    COUNT(*) as tweets_per_day,
+    ROUND(AVG(view_count)) as avg_views_per_day
+FROM 'tweets.parquet'
+GROUP BY day
+ORDER BY day DESC;"
+```
+
+**Extract All Tweet Text:**
+```bash
+duckdb -c "
+SELECT 
+    created_at,
+    text,
+    favorite_count as likes,
+    view_count as views
+FROM 'tweets.parquet'
+WHERE text NOT LIKE 'RT @%'  -- Original tweets only
+ORDER BY created_at DESC;"
+```
+
+**Advanced Analytics:**
+```bash
+# Find tweets with high engagement rate
+duckdb -c "
+SELECT 
+    text,
+    ROUND(100.0 * favorite_count / NULLIF(view_count, 0), 2) as engagement_rate_pct
+FROM 'tweets.parquet'
+WHERE view_count > 1000 AND text NOT LIKE 'RT @%'
+ORDER BY engagement_rate_pct DESC
+LIMIT 10;"
+
+# Hashtag analysis
+duckdb -c "
+SELECT 
+    UNNEST(hashtags) as hashtag,
+    COUNT(*) as usage_count
+FROM 'tweets.parquet'
+WHERE hashtags IS NOT NULL AND LENGTH(hashtags) > 0
+GROUP BY hashtag
+ORDER BY usage_count DESC;"
+```
+
+**Export Tweet Text to File:**
+```bash
+duckdb -c "
+COPY (
+    SELECT text
+    FROM 'tweets.parquet'
+    WHERE text NOT LIKE 'RT @%'  -- Exclude retweets
+    ORDER BY created_at DESC
+) TO 'tweets.txt' (FORMAT CSV, HEADER false, DELIMITER '|');
+"
+```
+
+This extracts only original tweet text (excluding retweets) and saves it to `tweets.txt`, one tweet per line.
+
 ## 🚀 Tips
 
 ### For Large Extractions
@@ -239,6 +316,7 @@ print(top_tweets)
 - **Run during off-peak**: Better rate limits during non-peak hours
 
 ## 🔒 Security & Privacy
+> Highly recommend creating a research account for data extraction.
 
 - **Credentials**: Stored locally in `config.yaml`.
 - **Session cookies**: Cached in `.twikit_cookies` for faster authentication
@@ -259,6 +337,27 @@ rate limits and user privacy.
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
+## 🔧 Development
+
+### Using UV for Development
+
+```bash
+# Install with development dependencies
+uv sync --group dev
+
+# Run tests
+uv run pytest
+
+# Format code
+uv run black .
+uv run isort .
+
+# Lint code  
+uv run ruff check .
+
+# Type checking
+uv run mypy .
+```
 ---
 
 Made with ❤️ using [UV](https://docs.astral.sh/uv/) for blazing-fast Python dependency management.
