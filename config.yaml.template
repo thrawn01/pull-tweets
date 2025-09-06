@@ -1,0 +1,23 @@
+# X.com Authentication
+auth:
+  username: ""
+  email: ""
+  password: ""
+  
+# Rate Limiting Settings
+rate_limiting:
+  base_delay_seconds: 2.0
+  max_retries: 5
+  backoff_multiplier: 2.0
+  
+# Output Settings
+output:
+  include_engagement_metrics: true
+  include_media_info: true
+  date_format: "ISO"  # Stores as ISO 8601 strings, compatible with DuckDB datetime parsing
+  batch_size: 50
+  
+# Processing Settings
+processing:
+  checkpoint_interval: 100  # Save progress every N tweets
+  max_memory_mb: 500
