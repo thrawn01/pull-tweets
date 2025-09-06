@@ -45,10 +45,10 @@ dev = [
 pull-tweets = "pull_tweets:main"
 
 [project.urls]
-Homepage = "https://github.com/user/pull-tweets"
-Repository = "https://github.com/user/pull-tweets"
-Documentation = "https://github.com/user/pull-tweets#readme"
-Issues = "https://github.com/user/pull-tweets/issues"
+Homepage = "https://github.com/thrawn01/pull-tweets"
+Repository = "https://github.com/thrawn01/pull-tweets"
+Documentation = "https://github.com/thrawn01/pull-tweets#readme"
+Issues = "https://github.com/thrawn01/pull-tweets/issues"
 
 [build-system]
 requires = ["hatchling"]

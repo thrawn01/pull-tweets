@@ -26,7 +26,7 @@ and memory-efficient processing.
 ### Clone and Setup
 
 ```bash
-git clone <repository-url>
+git clone git@github.com:thrawn01/pull-tweets.git
 cd pull-tweets
 
 # UV will automatically create a virtual environment and install dependencies
