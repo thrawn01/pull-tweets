@@ -6,7 +6,7 @@ auth:
   
 # Rate Limiting Settings
 rate_limiting:
-  base_delay_seconds: 2.0
+  base_delay_seconds: 4.0
   max_retries: 5
   backoff_multiplier: 2.0
   
