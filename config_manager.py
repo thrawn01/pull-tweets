@@ -36,7 +36,7 @@ class ConfigManager:
     def get_rate_limit_settings(self) -> Dict[str, Any]:
         """Get rate limiting configuration with defaults."""
         defaults = {
-            'base_delay_seconds': 2.0,
+            'base_delay_seconds': 4.0,
             'max_retries': 5,
             'backoff_multiplier': 2.0
         }

@@ -1,14 +1,12 @@
 # Tweet Extraction Tool
 
-A Research tool for extracting tweets from X.com (Twitter) using
-the twikit library. This tool does not use the official API to access tweets and
-saves comprehensive tweet data to parquet files with intelligent rate limiting
-and memory-efficient processing.
+A Research tool for extracting tweets from X.com (Twitter) using the twikit
+library. This tool saves tweet data to parquet files with intelligent rate
+limiting and memory-efficient processing.
 
 ## ✨ Features
 
 - **🔓 No API Keys Required**: Uses twikit to access X.com without official API credentials
-- **⚡ Lightning Fast**: Built with UV for ultra-fast dependency management and execution
 - **📅 Flexible Duration**: Extract tweets from any time period using natural language ("7 days", "1 month")
 - **💾 Memory Efficient**: Streams data in batches to handle large extractions without memory issues
 - **🔄 Auto-Resume**: Automatically saves progress and can resume interrupted extractions
@@ -63,7 +61,7 @@ auth:
   
 # Rate Limiting Settings
 rate_limiting:
-  base_delay_seconds: 2.0
+  base_delay_seconds: 4.0
   max_retries: 5
   backoff_multiplier: 2.0
   
@@ -156,6 +154,34 @@ The parquet file contains comprehensive tweet metadata:
 - `conversation_id`: Thread conversation identifier
 
 ## 📈 Data Analysis Examples
+
+### Export to Markdown
+
+Extract tweet content in markdown format for research and analysis:
+
+```bash
+# Extract original tweets (excludes retweets) to markdown
+uv run python extract_to_markdown.py tweets.parquet research_notes.md
+
+# Include retweets if needed
+uv run python extract_to_markdown.py tweets.parquet all_tweets.md --include-retweets
+```
+
+**Output format:**
+```markdown
+## 2025-09-06 19:43:35
+Everyone's always trying to make SQL better. What if we made SQL more SQL-y.
+
+## 2025-09-06 19:34:36  
+Iowa State is onto something..
+
+You heard it here first on the Locker Room. @TaylorLewan77 @JoshPateCFB 
+```
+
+Perfect for:
+- Qualitative research and content analysis
+- Import into note-taking apps
+- LLM Analysis
 
 ### Load and Explore Data
 
